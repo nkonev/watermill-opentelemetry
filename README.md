@@ -1,11 +1,14 @@
 # Watermill OpenTelemetry integration
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/voi-oss/watermill-opentelemetry)](https://goreportcard.com/report/github.com/voi-oss/watermill-opentelemetry)
-[![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](https://pkg.go.dev/github.com/voi-oss/watermill-opentelemetry)
-
 Bringing distributed tracing support to [Watermill](https://watermill.io/) with [OpenTelemetry](https://opentelemetry.io/). 
 
 ## Usage
+
+### Installation
+
+```shell
+go get github.com/nkonev/watermill-opentelemetry
+```
 
 ### For publishers
 
@@ -101,22 +104,11 @@ func InitRouter() (*message.Router, error) {
 }
 ```
 
-## Contributions
-
-We encourage and support an active, healthy community of contributors &mdash;
-including you! Details are in the [contribution guide](CONTRIBUTING.md) and
-the [code of conduct](CODE_OF_CONDUCT.md). The maintainers keep an eye on
-issues and pull requests, but you can also report any negative conduct to
-opensource@voiapp.io.
-
 ### Contributors
 
 - [@K-Phoen](https://github.com/K-Phoen)
 - [@jeespers](https://github.com/jeespers)
-
-#### I am missing?
-
-If you feel you should be on this list, create a PR to add yourself.
+- [@nkonev](https://github.com/nkonev)
 
 ## License
 
