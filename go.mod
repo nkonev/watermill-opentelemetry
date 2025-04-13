@@ -1,6 +1,6 @@
 module github.com/voi-oss/watermill-opentelemetry
 
-go 1.18
+go 1.22
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.2.0-rc.11
