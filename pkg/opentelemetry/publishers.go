@@ -1,7 +1,6 @@
 package opentelemetry
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -12,7 +11,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const MessageMetadataTraceId = "trace_id"
 const publisherTracerName = "watermill/publisher"
 
 // PublisherDecorator decorates a standard watermill publisher to add tracing capabilities.
@@ -60,7 +58,7 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 	ctx, span := p.tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindProducer))
 	messages[0].SetContext(ctx)
 	for _, m := range messages {
-		m.Metadata.Set(MessageMetadataTraceId, getTraceId(ctx))
+		otel.GetTextMapPropagator().Inject(ctx, metadataWrapper{m.Metadata})
 	}
 
 	spanAttributes := []attribute.KeyValue{
@@ -96,7 +94,18 @@ func structName(v interface{}) string {
 	return strings.TrimLeft(s, "*")
 }
 
-func getTraceId(ctx context.Context) string {
-	sc := trace.SpanFromContext(ctx).SpanContext()
-	return sc.TraceID().String()
+type metadataWrapper struct {
+	message.Metadata
+}
+
+func (mw metadataWrapper) Keys() []string {
+	i := 0
+	r := make([]string, len(mw.Metadata))
+
+	for k := range mw.Metadata {
+		r[i] = k
+		i++
+	}
+
+	return r
 }

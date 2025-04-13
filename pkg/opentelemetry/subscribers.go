@@ -6,7 +6,6 @@ import (
 	"go.opentelemetry.io/otel"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
-	"log"
 )
 
 const subscriberTracerName = "watermill/subscriber"
@@ -35,7 +34,7 @@ func TraceHandler(h message.HandlerFunc, options ...Option) message.HandlerFunc 
 	return func(msg *message.Message) ([]*message.Message, error) {
 		msgctx := msg.Context()
 		spanName := message.HandlerNameFromCtx(msgctx)
-		ctxWithSpan := createContextWithSpan(msgctx, msg.Metadata.Get(MessageMetadataTraceId))
+		ctxWithSpan := createContextWithSpan(msgctx, metadataWrapper{msg.Metadata})
 		ctx, span := tracer.Start(ctxWithSpan, spanName, spanOptions...)
 		span.SetAttributes(
 			semconv.MessagingDestinationKindTopic,
@@ -68,28 +67,6 @@ func TraceNoPublishHandler(h message.NoPublishHandlerFunc, options ...Option) me
 	}
 }
 
-//var randSource = rand.New(rand.NewSource(1))
-
-func createContextWithSpan(ctx context.Context, traceId string) context.Context {
-	traceID, err := trace.TraceIDFromHex(traceId)
-	if err != nil {
-		log.Printf("Unable to extract traceId from %v", traceId)
-		return ctx
-	}
-
-	//spanID := trace.SpanID{}
-	//_, _ = randSource.Read(spanID[:])
-
-	// https://stackoverflow.com/questions/77161111/golang-set-custom-traceid-and-spanid-in-opentelemetry/77176591#77176591
-	// ContextWithRemoteSpanContext
-	ctxRet := trace.ContextWithSpanContext(
-		ctx,
-		trace.NewSpanContext(trace.SpanContextConfig{
-			TraceID: traceID,
-			// SpanID:     spanID,
-			TraceFlags: trace.FlagsSampled,
-		}),
-	)
-
-	return ctxRet
+func createContextWithSpan(ctx context.Context, mw metadataWrapper) context.Context {
+	return otel.GetTextMapPropagator().Extract(ctx, mw)
 }
