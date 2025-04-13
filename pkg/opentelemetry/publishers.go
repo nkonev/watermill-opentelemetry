@@ -2,6 +2,7 @@ package opentelemetry
 
 import (
 	"fmt"
+	"go.opentelemetry.io/otel/propagation"
 	"strings"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -58,7 +59,7 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 	ctx, span := p.tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindProducer))
 	messages[0].SetContext(ctx)
 	for _, m := range messages {
-		otel.GetTextMapPropagator().Inject(ctx, metadataWrapper{m.Metadata})
+		p.getPropagator().Inject(ctx, metadataWrapper{m.Metadata})
 	}
 
 	spanAttributes := []attribute.KeyValue{
@@ -66,7 +67,7 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 		semconv.MessagingDestinationKey.String(topic),
 		semconv.MessagingOperationProcess,
 	}
-	spanAttributes = append(spanAttributes, spanAttributes...)
+	spanAttributes = append(spanAttributes, p.config.spanAttributes...)
 	span.SetAttributes(spanAttributes...)
 
 	err := p.pub.Publish(topic, messages...)
@@ -82,6 +83,14 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 // Close implements the watermill Publisher interface.
 func (p *PublisherDecorator) Close() error {
 	return p.pub.Close()
+}
+
+func (p *PublisherDecorator) getPropagator() propagation.TextMapPropagator {
+	if p.config.textMapPropagator != nil {
+		return p.config.textMapPropagator
+	} else {
+		return otel.GetTextMapPropagator()
+	}
 }
 
 func structName(v interface{}) string {
