@@ -82,6 +82,10 @@ func (p *PublisherDecorator) startSpan(topic string, msg *message.Message) trace
 		semconv.MessagingDestinationKey.String(topic),
 		semconv.MessagingOperationProcess,
 	}
+	msgName := msg.Metadata.Get("name")
+	if len(msgName) > 0 {
+		spanAttributes = append(spanAttributes, semconv.MessageTypeKey.String(msgName))
+	}
 	spanAttributes = append(spanAttributes, p.config.spanAttributes...)
 	span.SetAttributes(spanAttributes...)
 
