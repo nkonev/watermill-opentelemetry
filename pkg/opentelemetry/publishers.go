@@ -50,17 +50,32 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 		return nil
 	}
 
-	ctx := messages[0].Context()
-	spanName := message.PublisherNameFromCtx(ctx)
+	spans := make([]trace.Span, len(messages))
+	for i, msg := range messages {
+		span := p.startSpan(topic, msg)
+		spans[i] = span
+	}
+
+	err := p.pub.Publish(topic, messages...)
+
+	for _, span := range spans {
+		p.endSpan(err, span)
+	}
+
+	return err
+}
+
+func (p *PublisherDecorator) startSpan(topic string, msg *message.Message) trace.Span {
+	msgctx := msg.Context()
+	spanName := message.PublisherNameFromCtx(msgctx)
 	if spanName == "" {
 		spanName = p.publisherName
 	}
 
-	ctx, span := p.tracer.Start(ctx, spanName, trace.WithSpanKind(trace.SpanKindProducer))
-	messages[0].SetContext(ctx)
-	for _, m := range messages {
-		p.getPropagator().Inject(ctx, metadataWrapper{m.Metadata})
-	}
+	ctx, span := p.tracer.Start(msgctx, spanName, trace.WithSpanKind(trace.SpanKindProducer))
+	msg.SetContext(ctx)
+
+	p.getPropagator().Inject(ctx, metadataWrapper{msg.Metadata})
 
 	spanAttributes := []attribute.KeyValue{
 		semconv.MessagingDestinationKindTopic,
@@ -70,14 +85,14 @@ func (p *PublisherDecorator) Publish(topic string, messages ...*message.Message)
 	spanAttributes = append(spanAttributes, p.config.spanAttributes...)
 	span.SetAttributes(spanAttributes...)
 
-	err := p.pub.Publish(topic, messages...)
+	return span
+}
+
+func (p *PublisherDecorator) endSpan(err error, span trace.Span) {
 	if err != nil {
 		span.RecordError(err)
 	}
-
 	span.End()
-
-	return err
 }
 
 // Close implements the watermill Publisher interface.

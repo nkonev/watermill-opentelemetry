@@ -19,7 +19,7 @@ import (
     "github.com/ThreeDotsLabs/watermill-googlecloud/pkg/googlecloud"
     "github.com/ThreeDotsLabs/watermill/message"
     "github.com/garsue/watermillzap"
-    wotel "github.com/nkonev/watermill-opentelemetry"
+	wotel "github.com/nkonev/watermill-opentelemetry"
     "go.uber.org/zap"
 )
 
@@ -56,7 +56,7 @@ package example
 import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-    wotel "github.com/nkonev/watermill-opentelemetry"
+	wotel "github.com/nkonev/watermill-opentelemetry"
 )
 
 func InitTracedRouter() (*message.Router, error) {
@@ -79,7 +79,7 @@ package example
 import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-    wotel "github.com/nkonev/watermill-opentelemetry"
+	wotel "github.com/nkonev/watermill-opentelemetry"
 )
 
 func InitRouter() (*message.Router, error) {
