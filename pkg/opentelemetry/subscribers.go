@@ -20,11 +20,17 @@ func Trace(options ...Option) message.HandlerMiddleware {
 
 // TraceHandler decorates a watermill HandlerFunc to add tracing when a message is received.
 func TraceHandler(h message.HandlerFunc, options ...Option) message.HandlerFunc {
-	tracer := otel.Tracer(subscriberTracerName)
 	config := &config{}
 
 	for _, opt := range options {
 		opt(config)
+	}
+
+	var tracer trace.Tracer
+	if config.tracer != nil {
+		tracer = config.tracer
+	} else {
+		tracer = otel.Tracer(subscriberTracerName)
 	}
 
 	spanOptions := []trace.SpanStartOption{

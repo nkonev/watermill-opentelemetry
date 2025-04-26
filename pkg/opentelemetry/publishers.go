@@ -35,11 +35,18 @@ func NewNamedPublisherDecorator(name string, pub message.Publisher, options ...O
 		opt(&config)
 	}
 
+	var tracer trace.Tracer
+	if config.tracer != nil {
+		tracer = config.tracer
+	} else {
+		tracer = otel.Tracer(publisherTracerName)
+	}
+
 	return &PublisherDecorator{
 		pub:           pub,
 		publisherName: name,
 		config:        config,
-		tracer:        otel.Tracer(publisherTracerName),
+		tracer:        tracer,
 	}
 }
 

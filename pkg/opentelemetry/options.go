@@ -3,6 +3,7 @@ package opentelemetry
 import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // config represents the configuration options available for subscriber
@@ -10,6 +11,7 @@ import (
 type config struct {
 	spanAttributes    []attribute.KeyValue
 	textMapPropagator propagation.TextMapPropagator
+	tracer            trace.Tracer
 }
 
 // Option provides a convenience wrapper for simple options that can be
@@ -23,9 +25,16 @@ func WithSpanAttributes(attributes ...attribute.KeyValue) Option {
 	}
 }
 
-// WithTextMapPropagator includes the given attributes to the generated Spans.
+// WithTextMapPropagator sets propagator.
 func WithTextMapPropagator(p propagation.TextMapPropagator) Option {
 	return func(c *config) {
 		c.textMapPropagator = p
+	}
+}
+
+// WithTracer sets tracer.
+func WithTracer(t trace.Tracer) Option {
+	return func(c *config) {
+		c.tracer = t
 	}
 }
